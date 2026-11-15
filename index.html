@@ -5,69 +5,132 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Examen Ninja - Chakra</title>
+
 <style>
 *{box-sizing:border-box}
+
 body{
  margin:0;padding:15px;
  background:radial-gradient(circle at top,#29204d,#090914 75%);
  color:white;font-family:Arial,sans-serif;
  min-height:100vh
 }
+
 .container{
  max-width:850px;margin:25px auto;padding:25px;
  background:#151529;border:1px solid #8055bd;
  border-radius:18px;box-shadow:0 0 30px #7438d255
 }
+
 h1{text-align:center;color:#d0a5ff}
 h2{color:#d0a5ff}
 .subtitle{text-align:center;color:#aaa}
+
 button{
  background:linear-gradient(90deg,#7038bb,#ad55d7);
  color:white;border:0;border-radius:9px;
  padding:14px 22px;font-size:16px;
  cursor:pointer;margin-top:15px
 }
+
 button:hover{filter:brightness(1.2)}
+
 .center{text-align:center}
+
 .question{
  background:#24243e;padding:18px;
  margin:18px 0;border-radius:12px
 }
+
 .question p{font-size:18px;font-weight:bold}
+
 .option{
- display:block;background:#343451;
+ display:block;
+ position:relative;
+ background:#343451;
  padding:13px;margin:9px 0;
  border-radius:9px;cursor:pointer;
- border:1px solid transparent
+ border:1px solid transparent;
+ transition:.2s;
 }
-.option:hover{border-color:#bd83ff}
+
+.option:hover,.option:focus-within{
+ border-color:#bd83ff;
+ background:#414163;
+}
+
 .option input{margin-right:10px}
+
+.tooltip{
+ display:none;
+ position:absolute;
+ left:10px;
+ bottom:calc(100% + 8px);
+ width:min(300px,90%);
+ padding:12px;
+ background:#170f2c;
+ color:#e8d5ff;
+ border:1px solid #ad55d7;
+ border-radius:9px;
+ font-size:13px;
+ font-weight:normal;
+ line-height:1.5;
+ box-shadow:0 5px 20px #0009;
+ z-index:20;
+ pointer-events:none;
+}
+
+.option:hover .tooltip,
+.option:focus-within .tooltip,
+.option.show-description .tooltip{
+ display:block;
+}
+
 .progress,.bar{
  height:13px;background:#444;
  border-radius:20px;overflow:hidden;margin:12px 0
 }
+
 .progress div,.bar div{
  height:100%;width:0%;
  background:linear-gradient(90deg,#7138d2,#e4a2ff);
  transition:width .3s
 }
+
 .stat{
  background:#252540;padding:16px;
  border-radius:10px;margin:12px 0
 }
+
 .stat strong{color:#d5aaff}
+
 .tag{
  display:inline-block;background:#49306c;
  padding:8px 12px;border-radius:20px;
  margin:5px;font-size:14px
 }
+
 .rank{text-align:center;font-size:28px;color:#e2b6ff}
 .big{text-align:center;font-size:34px;color:#e2b6ff}
 .hidden{display:none}
 .small{color:#aaa;font-size:13px}
+
+@media(max-width:600px){
+ .container{padding:15px}
+ .big{font-size:25px}
+ .rank{font-size:23px}
+ .tooltip{
+  position:static;
+  width:100%;
+  margin-top:10px;
+  box-shadow:none;
+ }
+}
 </style>
 </head>
+
 <body>
+
 <div class="container">
 
 <h1>🍃 EXAMEN DE CHAKRA 🍃</h1>
@@ -76,6 +139,7 @@ button:hover{filter:brightness(1.2)}
 <div id="intro">
 <h2>Bienvenue, Shinobi !</h2>
 <p>Réponds aux 30 questions pour découvrir ton véritable potentiel.</p>
+
 <ul>
 <li>Réserve de chakra sur 1 000 000</li>
 <li>Affinités élémentaires</li>
@@ -84,6 +148,7 @@ button:hover{filter:brightness(1.2)}
 <li>Modes spéciaux</li>
 <li>Rang ninja</li>
 </ul>
+
 <div class="center">
 <button onclick="startQuiz()">COMMENCER</button>
 </div>
@@ -93,6 +158,7 @@ button:hover{filter:brightness(1.2)}
 <div id="counter"></div>
 <div class="progress"><div id="progressBar"></div></div>
 <div id="questionArea"></div>
+
 <div class="center">
 <button id="nextBtn" onclick="nextQuestion()">SUIVANT ➜</button>
 </div>
@@ -101,98 +167,117 @@ button:hover{filter:brightness(1.2)}
 <div id="result" class="hidden">
 <h1>⚡ TON PROFIL NINJA ⚡</h1>
 <div id="resultContent"></div>
+
 <div class="center">
 <button onclick="location.reload()">RECOMMENCER</button>
 <button onclick="window.print()">IMPRIMER</button>
 </div>
 </div>
+
 </div>
 
 <script>
 "use strict";
 
 const questions=[
+
 ["Quel est ton caractère ?",[
 ["Calme et réfléchi",{water:2,yin:2}],
 ["Courageux et déterminé",{fire:2,kurama:2}],
 ["Stratégique et patient",{earth:2,rinnegan:1}],
 ["Libre et imprévisible",{wind:2,lightning:1}]]],
+
 ["Quelle est ta plus grande qualité ?",[
 ["Détermination",{fire:2,chakra:3}],
 ["Sagesse",{yin:2,senin:2}],
 ["Loyauté",{yang:2,uzumaki:1}],
 ["Intelligence",{lightning:2,rinnegan:1}]]],
+
 ["Quel élément préfères-tu ?",[
 ["Feu",{fire:5}],
 ["Eau",{water:5}],
 ["Vent",{wind:5}],
 ["Foudre",{lightning:5}],
 ["Terre",{earth:5}]]],
+
 ["Comment combats-tu ?",[
 ["Attaque frontale",{fire:2,kurama:2}],
 ["Analyse",{lightning:2,yin:2}],
 ["Défense",{earth:2,yang:2}],
 ["Stratégie",{wind:2,rinnegan:2}]]],
+
 ["Quelle technique aimerais-tu ?",[
 ["Amaterasu",{sharingan:3,fire:2}],
 ["Mokuton",{mokuton:5,earth:1}],
 ["Glace",{hyoton:5,water:1}],
 ["Foudre",{lightning:3}]]],
+
 ["Quelle invocation choisirais-tu ?",[
 ["Crapaud",{senin:4}],
 ["Serpent",{snake:4}],
 ["Limace",{slug:4}],
 ["Kurama",{kurama:4}]]],
+
 ["Quel combat préfères-tu ?",[
 ["Corps à corps",{yang:2,hyuga:2}],
 ["Ninjutsu",{fire:2,uchiha:1}],
 ["Techniques complexes",{lightning:2,rinnegan:1}],
 ["Mode Ermite",{senin:3}]]],
+
 ["Quel pouvoir visuel préfères-tu ?",[
 ["Sharingan",{sharingan:5,uchiha:2}],
 ["Byakugan",{byakugan:5,hyuga:2}],
 ["Rinnegan",{rinnegan:5}],
 ["Tenseigan",{tenseigan:5}]]],
+
 ["Quel environnement préfères-tu ?",[
 ["Volcan",{fire:3,shakuton:2}],
 ["Forêt",{earth:2,mokuton:3}],
 ["Neige",{water:2,hyoton:3}],
 ["Orage",{lightning:3,ranton:2}]]],
+
 ["Quel est ton objectif ?",[
 ["Devenir puissant",{chakra:5,kurama:2}],
 ["Protéger le village",{yang:3,earth:2}],
 ["Sagesse",{senin:3,six:2}],
 ["Tout comprendre",{rinnegan:3,yin:2}]]],
+
 ["Quelle capacité visuelle choisirais-tu ?",[
 ["Mangekyō Sharingan",{sharingan:4,uchiha:3}],
 ["Byakugan évolué",{byakugan:3,tenseigan:3}],
 ["Rinnegan",{rinnegan:5}],
 ["Jōgan",{jogan:5}]]],
+
 ["Quelle combinaison élémentaire préfères-tu ?",[
 ["Glace",{hyoton:5,water:1,wind:1}],
 ["Bois",{mokuton:5,earth:1,water:1}],
 ["Lave",{yoton:5,fire:1,earth:1}],
 ["Tempête",{ranton:5,water:1,lightning:1}]]],
+
 ["Quelle technique héréditaire préfères-tu ?",[
 ["Explosion",{bakuton:5}],
 ["Magnétisme",{jiton:5}],
 ["Vapeur",{futton:5}],
 ["Brûlure",{shakuton:5}]]],
+
 ["Quelle énergie te correspond ?",[
 ["Spirituelle",{yin:4}],
 ["Physique",{yang:4}],
 ["Naturelle",{senin:4}],
 ["Divine",{six:4}]]],
+
 ["Quel mode aimerais-tu maîtriser ?",[
 ["Mode Ermite",{senin:5}],
 ["Mode Kurama",{kurama:5}],
 ["Mode Six Chemins",{six:5}],
 ["Mode Baryon",{baryon:5}]]],
+
 ["Quel type de chakra préfères-tu ?",[
 ["Réserve immense",{chakra:5,uzumaki:2}],
 ["Contrôle parfait",{yin:3,yang:3}],
 ["Chakra naturel",{senin:4}],
 ["Six Chemins",{six:4}]]],
+
 ["Quel clan choisirais-tu ?",[
 ["Uchiha",{uchiha:5,sharingan:2}],
 ["Hyûga",{hyuga:5,byakugan:2}],
@@ -200,71 +285,85 @@ const questions=[
 ["Uzumaki",{uzumaki:5,chakra:3}],
 ["Nara",{nara:5,yin:2}],
 ["Ōtsutsuki",{otsutsuki:5,six:2}]]],
+
 ["Quel animal préfères-tu ?",[
 ["Crapaud",{senin:3}],
 ["Serpent",{snake:3}],
 ["Renard",{kurama:3}],
 ["Dragon",{six:2,chakra:2}]]],
+
 ["Quelle capacité ultime choisirais-tu ?",[
 ["Puissance divine",{six:4,rinnegan:2}],
 ["Vitesse",{lightning:3}],
 ["Défense",{earth:3,yang:2}],
 ["Énergie gigantesque",{kurama:3,chakra:3}]]],
+
 ["Quelle phrase te correspond ?",[
 ["Je ne renonce jamais",{chakra:3,fire:1}],
 ["La connaissance est la clé",{yin:2,rinnegan:2}],
 ["La nature est ma force",{senin:3,earth:1}],
 ["Je dépasserai les limites",{six:3,kurama:2}]]],
+
 ["Quel type de technique aimerais-tu apprendre ?",[
 ["Genjutsu",{yin:3,sharingan:2}],
 ["Ninjutsu médical",{yang:3,slug:1}],
 ["Espace-temps",{rinnegan:3,otsutsuki:2}],
 ["Taijutsu",{yang:3,hyuga:2}]]],
+
 ["Quel pouvoir secondaire choisirais-tu ?",[
 ["Cristal",{shoton:5}],
 ["Acier",{koton:5}],
 ["Tempête",{ranton:3}],
 ["Lave",{yoton:3}]]],
+
 ["Quel type de réserve posséderais-tu ?",[
 ["Énorme",{chakra:5,uzumaki:3}],
 ["Équilibrée",{yin:2,yang:2}],
 ["Naturelle",{senin:4}],
 ["Exceptionnelle",{six:3,kurama:3}]]],
+
 ["Combien d'éléments aimerais-tu maîtriser ?",[
 ["Un seul parfaitement",{fire:2}],
 ["Deux",{water:2,wind:2}],
 ["Plusieurs",{rinnegan:3}],
 ["Tous",{six:4,otsutsuki:2}]]],
+
 ["Quel pouvoir de perception préfères-tu ?",[
 ["Vision du chakra",{byakugan:4}],
 ["Vision évoluée",{rinnegan:2,tenseigan:2}],
 ["Détection naturelle",{senin:4}],
 ["Vision dimensionnelle",{jogan:4,otsutsuki:2}]]],
+
 ["Quel rôle aurais-tu dans ton équipe ?",[
 ["Chef",{uchiha:2,fire:2}],
 ["Protecteur",{hyuga:2,yang:2}],
 ["Stratège",{nara:3,yin:2}],
 ["Combattant",{kurama:2,chakra:2}]]],
+
 ["Quel pouvoir de défense préfères-tu ?",[
 ["Mur de terre",{earth:3}],
 ["Barrière de chakra",{yang:3}],
 ["Susanoo",{sharingan:4}],
 ["Orbes de vérité",{six:4}]]],
+
 ["Quelle puissance aimerais-tu contrôler ?",[
 ["Bijû",{kurama:3}],
 ["Nature",{senin:3}],
 ["Ōtsutsuki",{otsutsuki:4}],
 ["Rinnegan",{rinnegan:4}]]],
+
 ["Quelle évolution choisirais-tu ?",[
 ["Mangekyō éternel",{sharingan:4}],
 ["Tenseigan",{tenseigan:4}],
 ["Rinnegan",{rinnegan:4}],
 ["Six Chemins",{six:4}]]],
+
 ["Quel serait ton titre ?",[
 ["Ninja légendaire",{chakra:4}],
 ["Maître des éléments",{fire:2,water:2,wind:2,earth:2,lightning:2}],
 ["Sage ultime",{senin:3,six:2}],
 ["Descendant divin",{otsutsuki:4,six:2}]]]
+
 ];
 
 const names={
@@ -290,6 +389,234 @@ senju:"Clan Senju",uzumaki:"Clan Uzumaki",
 nara:"Clan Nara",otsutsuki:"Clan Ōtsutsuki"
 };
 
+// DESCRIPTIONS DES POUVOIRS ET CAPACITÉS
+
+const descriptions={
+
+"Calme et réfléchi":"Tu privilégies la réflexion, la maîtrise de soi et l'analyse avant d'agir.",
+
+"Courageux et déterminé":"Tu avances avec détermination et tu n'abandonnes pas facilement.",
+
+"Stratégique et patient":"Tu préfères préparer tes actions et anticiper les mouvements adverses.",
+
+"Libre et imprévisible":"Tu aimes surprendre et utiliser des stratégies inattendues.",
+
+"Détermination":"Ta volonté est ta principale force. Tu continues même face aux difficultés.",
+
+"Sagesse":"Tu recherches la connaissance et la maîtrise de tes capacités.",
+
+"Loyauté":"Tu accordes une grande importance à tes alliés et à la protection de ton équipe.",
+
+"Intelligence":"Tu préfères comprendre les situations et trouver leurs faiblesses.",
+
+"Feu":"Katon : permet de produire et manipuler des flammes.",
+
+"Eau":"Suiton : permet de manipuler l'eau et de créer différentes techniques aquatiques.",
+
+"Vent":"Fûton : permet de créer des rafales et des attaques tranchantes.",
+
+"Foudre":"Raiton : permet de produire et manipuler l'électricité.",
+
+"Terre":"Doton : permet de manipuler le sol, la roche et de créer des défenses.",
+
+"Attaque frontale":"Tu privilégies la puissance offensive et les attaques directes.",
+
+"Analyse":"Tu observes ton adversaire pour identifier ses faiblesses.",
+
+"Défense":"Tu préfères résister aux attaques et protéger tes alliés.",
+
+"Stratégie":"Tu utilises la réflexion et la ruse pour prendre l'avantage.",
+
+"Amaterasu":"Flammes noires légendaires du Mangekyō Sharingan.",
+
+"Mokuton":"Art héréditaire permettant de créer et manipuler le bois.",
+
+"Glace":"Hyōton : combinaison du Suiton et du Fûton permettant de manipuler la glace.",
+
+"Explosion":"Bakuton : techniques reposant sur la libération explosive du chakra.",
+
+"Magnétisme":"Jiton : permet de contrôler des propriétés magnétiques.",
+
+"Vapeur":"Futton : combinaison élémentaire associée à la vapeur.",
+
+"Brûlure":"Shakuton : permet de produire une chaleur extrême.",
+
+"Crapaud":"Invocation et entraînement associés aux crapauds du mont Myôboku.",
+
+"Serpent":"Invocation associée aux serpents et aux techniques de l'école des serpents.",
+
+"Limace":"Invocation associée aux limaces et aux capacités de soin.",
+
+"Kurama":"Le démon renard à neuf queues, possédant une immense réserve de chakra.",
+
+"Corps à corps":"Tu privilégies le Taijutsu et les combats rapprochés.",
+
+"Ninjutsu":"Tu privilégies les techniques utilisant les transformations de chakra.",
+
+"Techniques complexes":"Tu aimes les techniques élaborées et les pouvoirs avancés.",
+
+"Mode Ermite":"Permet d'utiliser l'énergie naturelle pour renforcer ses capacités.",
+
+"Sharingan":"Dojutsu Uchiha permettant de mieux percevoir les mouvements et de copier certaines techniques.",
+
+"Byakugan":"Dojutsu Hyûga offrant une vision presque panoramique et la perception du réseau de chakra.",
+
+"Rinnegan":"Dojutsu légendaire donnant accès aux pouvoirs des Six Chemins.",
+
+"Tenseigan":"Dojutsu puissant associé au clan Ōtsutsuki et à des capacités exceptionnelles.",
+
+"Jōgan":"Œil mystérieux capable de percevoir des phénomènes liés aux dimensions.",
+
+"Volcan":"Environnement associé à la chaleur et aux techniques de feu.",
+
+"Forêt":"Environnement idéal pour les techniques végétales et le Mokuton.",
+
+"Neige":"Environnement adapté aux techniques d'eau et de glace.",
+
+"Orage":"Environnement favorable aux techniques de foudre et de tempête.",
+
+"Devenir puissant":"Tu recherches la progression et le développement de tes capacités.",
+
+"Protéger le village":"Tu souhaites défendre tes proches et ton village.",
+
+"Sagesse":"Tu recherches la connaissance et la maîtrise de l'énergie naturelle.",
+
+"Tout comprendre":"Tu souhaites découvrir les secrets du chakra et du monde ninja.",
+
+"Mangekyō Sharingan":"Évolution avancée du Sharingan donnant accès à des capacités particulières.",
+
+"Byakugan évolué":"Une évolution du Byakugan associée à des capacités visuelles supérieures.",
+
+"Rinnegan":"Un œil légendaire lié aux pouvoirs des Six Chemins.",
+
+"Jōgan":"Un pouvoir visuel mystérieux lié à la perception dimensionnelle.",
+
+"Bois":"Mokuton : combinaison du Suiton et du Doton.",
+
+"Lave":"Yōton : combinaison élémentaire permettant de manipuler la lave.",
+
+"Tempête":"Ranton : combinaison du Suiton et du Raiton.",
+
+"Spirituelle":"Le Yin est associé à l'énergie spirituelle et à l'imagination.",
+
+"Physique":"Le Yang est associé à l'énergie physique et à la vitalité.",
+
+"Naturelle":"Le chakra naturel provient de l'énergie présente dans l'environnement.",
+
+"Divine":"Une énergie exceptionnelle associée aux pouvoirs des Six Chemins.",
+
+"Mode Kurama":"Transformation permettant d'utiliser la puissance du démon renard.",
+
+"Mode Six Chemins":"Pouvoir exceptionnel associé au Sage des Six Chemins.",
+
+"Mode Baryon":"Transformation ultime de Naruto reposant sur une fusion particulière des chakras.",
+
+"Réserve immense":"Tu possèdes une quantité exceptionnelle de chakra.",
+
+"Contrôle parfait":"Tu privilégies la précision et l'équilibre entre les énergies Yin et Yang.",
+
+"Chakra naturel":"Tu privilégies l'énergie naturelle et le mode Ermite.",
+
+"Six Chemins":"Tu recherches une puissance associée aux Six Chemins.",
+
+"Uchiha":"Clan célèbre pour son Sharingan et ses puissantes techniques de feu.",
+
+"Hyûga":"Clan possédant le Byakugan et le style du Poing Souple.",
+
+"Senju":"Clan réputé pour sa vitalité et son héritage puissant.",
+
+"Uzumaki":"Clan connu pour sa vitalité exceptionnelle et ses grandes réserves de chakra.",
+
+"Nara":"Clan réputé pour son intelligence et ses techniques de manipulation des ombres.",
+
+"Ōtsutsuki":"Clan céleste associé aux origines du chakra et aux pouvoirs divins.",
+
+"Renard":"Le renard représente la puissance de Kurama et une grande réserve de chakra.",
+
+"Dragon":"Créature symbolisant une puissance exceptionnelle et mystérieuse.",
+
+"Puissance divine":"Tu souhaites maîtriser des capacités dépassant les limites habituelles.",
+
+"Vitesse":"Tu privilégies la rapidité et les techniques de déplacement.",
+
+"Défense":"Tu souhaites devenir particulièrement résistant.",
+
+"Énergie gigantesque":"Tu recherches une réserve de chakra immense.",
+
+"Je ne renonce jamais":"Ta détermination est ta plus grande qualité.",
+
+"La connaissance est la clé":"Tu privilégies l'intelligence et l'apprentissage.",
+
+"La nature est ma force":"Tu souhaites utiliser l'énergie naturelle.",
+
+"Je dépasserai les limites":"Tu recherches constamment de nouvelles évolutions.",
+
+"Genjutsu":"Art ninja permettant d'agir sur les perceptions de l'adversaire.",
+
+"Ninjutsu médical":"Techniques permettant de soigner et de contrôler le chakra.",
+
+"Espace-temps":"Techniques permettant d'agir sur les dimensions et les déplacements.",
+
+"Taijutsu":"Art du combat physique et des techniques corporelles.",
+
+"Cristal":"Shōton : techniques permettant de créer et manipuler le cristal.",
+
+"Acier":"Kōton : capacité associée à la manipulation de l'acier.",
+
+"Énorme":"Tu privilégies une réserve de chakra particulièrement importante.",
+
+"Équilibrée":"Tu recherches un équilibre entre les différentes formes d'énergie.",
+
+"Exceptionnelle":"Tu recherches une réserve exceptionnelle associée à des pouvoirs avancés.",
+
+"Un seul parfaitement":"Tu privilégies la maîtrise complète d'un seul élément.",
+
+"Deux":"Tu souhaites combiner deux affinités élémentaires.",
+
+"Plusieurs":"Tu souhaites maîtriser plusieurs transformations de chakra.",
+
+"Tous":"Tu souhaites maîtriser les cinq éléments fondamentaux.",
+
+"Vision du chakra":"Permet de percevoir le réseau et la circulation du chakra.",
+
+"Vision évoluée":"Tu recherches une perception visuelle supérieure.",
+
+"Détection naturelle":"Permet de ressentir les présences grâce à l'énergie naturelle.",
+
+"Vision dimensionnelle":"Capacité associée à la perception des dimensions.",
+
+"Chef":"Tu souhaites diriger ton équipe et prendre les décisions importantes.",
+
+"Protecteur":"Tu privilégies la défense et la sécurité de tes alliés.",
+
+"Stratège":"Tu utilises ton intelligence pour préparer les missions.",
+
+"Combattant":"Tu préfères être en première ligne.",
+
+"Mur de terre":"Technique défensive utilisant le Doton.",
+
+"Barrière de chakra":"Technique permettant de créer une protection énergétique.",
+
+"Susanoo":"Manifestation protectrice et offensive associée au Mangekyō Sharingan.",
+
+"Orbes de vérité":"Orbes de chakra extrêmement puissantes associées aux Six Chemins.",
+
+"Bijû":"Tu souhaites contrôler la puissance d'un démon à queues.",
+
+"Nature":"Tu souhaites maîtriser l'énergie naturelle.",
+
+"Ōtsutsuki":"Tu souhaites accéder aux pouvoirs du clan céleste.",
+
+"Mangekyō éternel":"Évolution du Mangekyō Sharingan qui évite la perte progressive de la vue."
+};
+
+// FONCTION QUI RÉCUPÈRE UNE DESCRIPTION
+
+function getDescription(name){
+ return descriptions[name] ||
+ "Une capacité ninja particulière liée à cette réponse et à ton potentiel.";
+}
+
 let current=0;
 let scores={};
 
@@ -300,54 +627,111 @@ function startQuiz(){
 }
 
 function renderQuestion(){
+
  const q=questions[current];
+
  document.getElementById("counter").textContent=
  "Question "+(current+1)+" / "+questions.length;
+
  document.getElementById("progressBar").style.width=
  (current/questions.length*100)+"%";
+
  let html='<div class="question"><p>'+q[0]+'</p>';
+
  q[1].forEach((o,i)=>{
- html+=`<label class="option"><input type="radio"
- name="answer" value="${i}">${o[0]}</label>`;
+
+ const description=getDescription(o[0]);
+
+ html+=`
+ <label class="option" tabindex="0">
+ <input type="radio" name="answer" value="${i}">
+ ${o[0]}
+ <span class="tooltip">${description}</span>
+ </label>`;
+
  });
+
  html+='</div>';
+
  document.getElementById("questionArea").innerHTML=html;
+
  document.getElementById("nextBtn").textContent=
- current===questions.length-1?"VOIR MON RÉSULTAT":"SUIVANT ➜";
+ current===questions.length-1
+ ?"VOIR MON RÉSULTAT"
+ :"SUIVANT ➜";
+
+ // Sur téléphone : toucher une réponse affiche sa description.
+ document.querySelectorAll(".option").forEach(option=>{
+
+ option.addEventListener("click",function(){
+
+ document.querySelectorAll(".option").forEach(o=>{
+ o.classList.remove("show-description");
+ });
+
+ this.classList.add("show-description");
+
+ });
+
+ });
+
 }
 
 function nextQuestion(){
- const selected=document.querySelector('input[name="answer"]:checked');
- if(!selected){alert("Choisis une réponse !");return;}
+
+ const selected=document.querySelector(
+ 'input[name="answer"]:checked'
+ );
+
+ if(!selected){
+ alert("Choisis une réponse !");
+ return;
+ }
+
  const answer=questions[current][1][Number(selected.value)][1];
+
  Object.entries(answer).forEach(([key,value])=>{
  scores[key]=(scores[key]||0)+value;
  });
+
  current++;
- if(current<questions.length)renderQuestion();
- else showResult();
+
+ if(current<questions.length){
+ renderQuestion();
+ }else{
+ showResult();
+ }
+
 }
 
 function best(keys){
- return [...keys].sort((a,b)=>(scores[b]||0)-(scores[a]||0))[0];
+ return [...keys].sort(
+ (a,b)=>(scores[b]||0)-(scores[a]||0)
+ )[0];
 }
 
 function showResult(){
+
  document.getElementById("quiz").classList.add("hidden");
  document.getElementById("result").classList.remove("hidden");
 
  const elements=["fire","water","wind","lightning","earth"];
+
  const element=best(elements);
+
  const clan=best(Object.keys(clans));
 
- // 28 points de chakra correspondent à 1 000 000.
  const chakraPoints=scores.chakra||0;
+
  const maxChakraPoints=28;
 
- // MINIMUM GARANTI : 99 999 POINTS DE CHAKRA
- const chakra=Math.min(1000000,Math.max(99999,Math.round(
- chakraPoints/maxChakraPoints*1000000
- )));
+ const chakra=Math.min(
+ 1000000,
+ Math.max(
+ 99999,
+ Math.round(chakraPoints/maxChakraPoints*1000000)
+ )
+ );
 
  const level=chakra>=1000000?"Divin":
  chakra>=950000?"Mythique":
@@ -369,7 +753,9 @@ function showResult(){
  "shakuton","bakuton","ranton","shoton","koton"
  ];
 
- const modes=["senin","snake","slug","kurama","six","baryon"];
+ const modes=[
+ "senin","snake","slug","kurama","six","baryon"
+ ];
 
  const tech=techniques.filter(k=>(scores[k]||0)>=3)
  .sort((a,b)=>scores[b]-scores[a]);
@@ -382,34 +768,72 @@ function showResult(){
  );
 
  const html=`
+
  <div class="rank">🏆 ${rank}</div>
- <div class="stat"><strong>Clan :</strong><h2>${clans[clan]}</h2></div>
- <div class="stat"><strong>Élément principal :</strong>
- <h2>${names[element]}</h2></div>
- <div class="stat"><strong>Affinités :</strong><br>
- ${sortedElements.map(k=>`<span class="tag">${names[k]} (${scores[k]||0})</span>`).join("")}
+
+ <div class="stat">
+ <strong>Clan :</strong>
+ <h2>${clans[clan]}</h2>
+ <p>${getDescription(clans[clan])}</p>
  </div>
- <div class="stat"><strong>Réserve de chakra :</strong>
+
+ <div class="stat">
+ <strong>Élément principal :</strong>
+ <h2>${names[element]}</h2>
+ <p>${getDescription(names[element])}</p>
+ </div>
+
+ <div class="stat">
+ <strong>Affinités :</strong><br>
+ ${sortedElements.map(k=>
+ `<span class="tag">${names[k]} (${scores[k]||0})</span>`
+ ).join("")}
+ </div>
+
+ <div class="stat">
+ <strong>Réserve de chakra :</strong>
  <div class="big">${chakra.toLocaleString("fr-FR")} / 1 000 000</div>
  <p>Niveau : ${level}</p>
- <div class="bar"><div style="width:${chakra/10000}%"></div></div>
- <p class="small">Ton score est calculé à partir de tes réponses, avec un minimum garanti de 99 999 points.</p>
+ <div class="bar">
+ <div style="width:${chakra/10000}%"></div>
  </div>
- <div class="stat"><strong>Techniques héréditaires :</strong><br>
- ${tech.length?tech.map(k=>`<span class="tag">${names[k]}</span>`).join(""):"Aucune technique dominante détectée"}
+ <p class="small">
+ Ton score est calculé à partir de tes réponses,
+ avec un minimum garanti de 99 999 points.
+ </p>
  </div>
- <div class="stat"><strong>Modes spéciaux :</strong><br>
- ${activeModes.length?activeModes.map(k=>`<span class="tag">${names[k]}</span>`).join(""):"Aucun mode spécial détecté"}
+
+ <div class="stat">
+ <strong>Techniques héréditaires :</strong><br>
+ ${tech.length?
+ tech.map(k=>`<span class="tag">${names[k]}</span>`).join("")
+ :"Aucune technique dominante détectée"}
  </div>
- <div class="stat"><strong>Énergies :</strong><br>
+
+ <div class="stat">
+ <strong>Modes spéciaux :</strong><br>
+ ${activeModes.length?
+ activeModes.map(k=>`<span class="tag">${names[k]}</span>`).join("")
+ :"Aucun mode spécial détecté"}
+ </div>
+
+ <div class="stat">
+ <strong>Énergies :</strong><br>
  Yin : ${scores.yin||0}<br>
  Yang : ${scores.yang||0}<br>
- Yin-Yang : ${(scores.yin||0)>0&&(scores.yang||0)>0?"Affinité détectée":"Non détectée"}
+ Yin-Yang :
+ ${(scores.yin||0)>0&&(scores.yang||0)>0
+ ?"Affinité détectée"
+ :"Non détectée"}
  </div>
+
  `;
+
  document.getElementById("resultContent").innerHTML=html;
+
 }
+
 </script>
+
 </body>
 </html>
-
