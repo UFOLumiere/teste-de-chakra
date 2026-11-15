@@ -1,1 +1,415 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Examen Ninja - Chakra</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:15px;
+ background:radial-gradient(circle at top,#29204d,#090914 75%);
+ color:white;font-family:Arial,sans-serif;
+ min-height:100vh
+}
+.container{
+ max-width:850px;margin:25px auto;padding:25px;
+ background:#151529;border:1px solid #8055bd;
+ border-radius:18px;box-shadow:0 0 30px #7438d255
+}
+h1{text-align:center;color:#d0a5ff}
+h2{color:#d0a5ff}
+.subtitle{text-align:center;color:#aaa}
+button{
+ background:linear-gradient(90deg,#7038bb,#ad55d7);
+ color:white;border:0;border-radius:9px;
+ padding:14px 22px;font-size:16px;
+ cursor:pointer;margin-top:15px
+}
+button:hover{filter:brightness(1.2)}
+.center{text-align:center}
+.question{
+ background:#24243e;padding:18px;
+ margin:18px 0;border-radius:12px
+}
+.question p{font-size:18px;font-weight:bold}
+.option{
+ display:block;background:#343451;
+ padding:13px;margin:9px 0;
+ border-radius:9px;cursor:pointer;
+ border:1px solid transparent
+}
+.option:hover{border-color:#bd83ff}
+.option input{margin-right:10px}
+.progress,.bar{
+ height:13px;background:#444;
+ border-radius:20px;overflow:hidden;margin:12px 0
+}
+.progress div,.bar div{
+ height:100%;width:0%;
+ background:linear-gradient(90deg,#7138d2,#e4a2ff);
+ transition:width .3s
+}
+.stat{
+ background:#252540;padding:16px;
+ border-radius:10px;margin:12px 0
+}
+.stat strong{color:#d5aaff}
+.tag{
+ display:inline-block;background:#49306c;
+ padding:8px 12px;border-radius:20px;
+ margin:5px;font-size:14px
+}
+.rank{text-align:center;font-size:28px;color:#e2b6ff}
+.big{text-align:center;font-size:34px;color:#e2b6ff}
+.hidden{display:none}
+.small{color:#aaa;font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🍃 EXAMEN DE CHAKRA 🍃</h1>
+<p class="subtitle">Académie des Shinobi — Analyse du potentiel</p>
+
+<div id="intro">
+<h2>Bienvenue, Shinobi !</h2>
+<p>Réponds aux 30 questions pour découvrir ton véritable potentiel.</p>
+<ul>
+<li>Réserve de chakra sur 1 000 000</li>
+<li>Affinités élémentaires</li>
+<li>Techniques héréditaires</li>
+<li>Clan</li>
+<li>Modes spéciaux</li>
+<li>Rang ninja</li>
+</ul>
+<div class="center">
+<button onclick="startQuiz()">COMMENCER</button>
+</div>
+</div>
+
+<div id="quiz" class="hidden">
+<div id="counter"></div>
+<div class="progress"><div id="progressBar"></div></div>
+<div id="questionArea"></div>
+<div class="center">
+<button id="nextBtn" onclick="nextQuestion()">SUIVANT ➜</button>
+</div>
+</div>
+
+<div id="result" class="hidden">
+<h1>⚡ TON PROFIL NINJA ⚡</h1>
+<div id="resultContent"></div>
+<div class="center">
+<button onclick="location.reload()">RECOMMENCER</button>
+<button onclick="window.print()">IMPRIMER</button>
+</div>
+</div>
+</div>
+
+<script>
+"use strict";
+
+const questions=[
+["Quel est ton caractère ?",[
+["Calme et réfléchi",{water:2,yin:2}],
+["Courageux et déterminé",{fire:2,kurama:2}],
+["Stratégique et patient",{earth:2,rinnegan:1}],
+["Libre et imprévisible",{wind:2,lightning:1}]]],
+["Quelle est ta plus grande qualité ?",[
+["Détermination",{fire:2,chakra:3}],
+["Sagesse",{yin:2,senin:2}],
+["Loyauté",{yang:2,uzumaki:1}],
+["Intelligence",{lightning:2,rinnegan:1}]]],
+["Quel élément préfères-tu ?",[
+["Feu",{fire:5}],
+["Eau",{water:5}],
+["Vent",{wind:5}],
+["Foudre",{lightning:5}],
+["Terre",{earth:5}]]],
+["Comment combats-tu ?",[
+["Attaque frontale",{fire:2,kurama:2}],
+["Analyse",{lightning:2,yin:2}],
+["Défense",{earth:2,yang:2}],
+["Stratégie",{wind:2,rinnegan:2}]]],
+["Quelle technique aimerais-tu ?",[
+["Amaterasu",{sharingan:3,fire:2}],
+["Mokuton",{mokuton:5,earth:1}],
+["Glace",{hyoton:5,water:1}],
+["Foudre",{lightning:3}]]],
+["Quelle invocation choisirais-tu ?",[
+["Crapaud",{senin:4}],
+["Serpent",{snake:4}],
+["Limace",{slug:4}],
+["Kurama",{kurama:4}]]],
+["Quel combat préfères-tu ?",[
+["Corps à corps",{yang:2,hyuga:2}],
+["Ninjutsu",{fire:2,uchiha:1}],
+["Techniques complexes",{lightning:2,rinnegan:1}],
+["Mode Ermite",{senin:3}]]],
+["Quel pouvoir visuel préfères-tu ?",[
+["Sharingan",{sharingan:5,uchiha:2}],
+["Byakugan",{byakugan:5,hyuga:2}],
+["Rinnegan",{rinnegan:5}],
+["Tenseigan",{tenseigan:5}]]],
+["Quel environnement préfères-tu ?",[
+["Volcan",{fire:3,shakuton:2}],
+["Forêt",{earth:2,mokuton:3}],
+["Neige",{water:2,hyoton:3}],
+["Orage",{lightning:3,ranton:2}]]],
+["Quel est ton objectif ?",[
+["Devenir puissant",{chakra:5,kurama:2}],
+["Protéger le village",{yang:3,earth:2}],
+["Sagesse",{senin:3,six:2}],
+["Tout comprendre",{rinnegan:3,yin:2}]]],
+["Quelle capacité visuelle choisirais-tu ?",[
+["Mangekyō Sharingan",{sharingan:4,uchiha:3}],
+["Byakugan évolué",{byakugan:3,tenseigan:3}],
+["Rinnegan",{rinnegan:5}],
+["Jōgan",{jogan:5}]]],
+["Quelle combinaison élémentaire préfères-tu ?",[
+["Glace",{hyoton:5,water:1,wind:1}],
+["Bois",{mokuton:5,earth:1,water:1}],
+["Lave",{yoton:5,fire:1,earth:1}],
+["Tempête",{ranton:5,water:1,lightning:1}]]],
+["Quelle technique héréditaire préfères-tu ?",[
+["Explosion",{bakuton:5}],
+["Magnétisme",{jiton:5}],
+["Vapeur",{futton:5}],
+["Brûlure",{shakuton:5}]]],
+["Quelle énergie te correspond ?",[
+["Spirituelle",{yin:4}],
+["Physique",{yang:4}],
+["Naturelle",{senin:4}],
+["Divine",{six:4}]]],
+["Quel mode aimerais-tu maîtriser ?",[
+["Mode Ermite",{senin:5}],
+["Mode Kurama",{kurama:5}],
+["Mode Six Chemins",{six:5}],
+["Mode Baryon",{baryon:5}]]],
+["Quel type de chakra préfères-tu ?",[
+["Réserve immense",{chakra:5,uzumaki:2}],
+["Contrôle parfait",{yin:3,yang:3}],
+["Chakra naturel",{senin:4}],
+["Six Chemins",{six:4}]]],
+["Quel clan choisirais-tu ?",[
+["Uchiha",{uchiha:5,sharingan:2}],
+["Hyûga",{hyuga:5,byakugan:2}],
+["Senju",{senju:5,mokuton:2}],
+["Uzumaki",{uzumaki:5,chakra:3}],
+["Nara",{nara:5,yin:2}],
+["Ōtsutsuki",{otsutsuki:5,six:2}]]],
+["Quel animal préfères-tu ?",[
+["Crapaud",{senin:3}],
+["Serpent",{snake:3}],
+["Renard",{kurama:3}],
+["Dragon",{six:2,chakra:2}]]],
+["Quelle capacité ultime choisirais-tu ?",[
+["Puissance divine",{six:4,rinnegan:2}],
+["Vitesse",{lightning:3}],
+["Défense",{earth:3,yang:2}],
+["Énergie gigantesque",{kurama:3,chakra:3}]]],
+["Quelle phrase te correspond ?",[
+["Je ne renonce jamais",{chakra:3,fire:1}],
+["La connaissance est la clé",{yin:2,rinnegan:2}],
+["La nature est ma force",{senin:3,earth:1}],
+["Je dépasserai les limites",{six:3,kurama:2}]]],
+["Quel type de technique aimerais-tu apprendre ?",[
+["Genjutsu",{yin:3,sharingan:2}],
+["Ninjutsu médical",{yang:3,slug:1}],
+["Espace-temps",{rinnegan:3,otsutsuki:2}],
+["Taijutsu",{yang:3,hyuga:2}]]],
+["Quel pouvoir secondaire choisirais-tu ?",[
+["Cristal",{shoton:5}],
+["Acier",{koton:5}],
+["Tempête",{ranton:3}],
+["Lave",{yoton:3}]]],
+["Quel type de réserve posséderais-tu ?",[
+["Énorme",{chakra:5,uzumaki:3}],
+["Équilibrée",{yin:2,yang:2}],
+["Naturelle",{senin:4}],
+["Exceptionnelle",{six:3,kurama:3}]]],
+["Combien d'éléments aimerais-tu maîtriser ?",[
+["Un seul parfaitement",{fire:2}],
+["Deux",{water:2,wind:2}],
+["Plusieurs",{rinnegan:3}],
+["Tous",{six:4,otsutsuki:2}]]],
+["Quel pouvoir de perception préfères-tu ?",[
+["Vision du chakra",{byakugan:4}],
+["Vision évoluée",{rinnegan:2,tenseigan:2}],
+["Détection naturelle",{senin:4}],
+["Vision dimensionnelle",{jogan:4,otsutsuki:2}]]],
+["Quel rôle aurais-tu dans ton équipe ?",[
+["Chef",{uchiha:2,fire:2}],
+["Protecteur",{hyuga:2,yang:2}],
+["Stratège",{nara:3,yin:2}],
+["Combattant",{kurama:2,chakra:2}]]],
+["Quel pouvoir de défense préfères-tu ?",[
+["Mur de terre",{earth:3}],
+["Barrière de chakra",{yang:3}],
+["Susanoo",{sharingan:4}],
+["Orbes de vérité",{six:4}]]],
+["Quelle puissance aimerais-tu contrôler ?",[
+["Bijû",{kurama:3}],
+["Nature",{senin:3}],
+["Ōtsutsuki",{otsutsuki:4}],
+["Rinnegan",{rinnegan:4}]]],
+["Quelle évolution choisirais-tu ?",[
+["Mangekyō éternel",{sharingan:4}],
+["Tenseigan",{tenseigan:4}],
+["Rinnegan",{rinnegan:4}],
+["Six Chemins",{six:4}]]],
+["Quel serait ton titre ?",[
+["Ninja légendaire",{chakra:4}],
+["Maître des éléments",{fire:2,water:2,wind:2,earth:2,lightning:2}],
+["Sage ultime",{senin:3,six:2}],
+["Descendant divin",{otsutsuki:4,six:2}]]]
+];
+
+const names={
+fire:"Katon 🔥",water:"Suiton 💧",wind:"Fûton 🌪️",
+lightning:"Raiton ⚡",earth:"Doton 🪨",
+yin:"Yin",yang:"Yang",
+sharingan:"Sharingan",byakugan:"Byakugan",
+rinnegan:"Rinnegan",tenseigan:"Tenseigan",
+jogan:"Jōgan",mokuton:"Mokuton",hyoton:"Hyōton",
+yoton:"Yōton",futton:"Futton",jiton:"Jiton",
+shakuton:"Shakuton",bakuton:"Bakuton",
+ranton:"Ranton",shoton:"Shōton",koton:"Kōton",
+uchiha:"Uchiha",hyuga:"Hyûga",senju:"Senju",
+uzumaki:"Uzumaki",nara:"Nara",otsutsuki:"Ōtsutsuki",
+senin:"Mode Ermite",snake:"Mode Ermite des Serpents",
+slug:"Mode Ermite des Limaces",kurama:"Mode Chakra de Kurama",
+six:"Mode Six Chemins",baryon:"Mode Baryon"
+};
+
+const clans={
+uchiha:"Clan Uchiha",hyuga:"Clan Hyûga",
+senju:"Clan Senju",uzumaki:"Clan Uzumaki",
+nara:"Clan Nara",otsutsuki:"Clan Ōtsutsuki"
+};
+
+let current=0;
+let scores={};
+
+function startQuiz(){
+ document.getElementById("intro").classList.add("hidden");
+ document.getElementById("quiz").classList.remove("hidden");
+ renderQuestion();
+}
+
+function renderQuestion(){
+ const q=questions[current];
+ document.getElementById("counter").textContent=
+ "Question "+(current+1)+" / "+questions.length;
+ document.getElementById("progressBar").style.width=
+ (current/questions.length*100)+"%";
+ let html='<div class="question"><p>'+q[0]+'</p>';
+ q[1].forEach((o,i)=>{
+ html+=`<label class="option"><input type="radio"
+ name="answer" value="${i}">${o[0]}</label>`;
+ });
+ html+='</div>';
+ document.getElementById("questionArea").innerHTML=html;
+ document.getElementById("nextBtn").textContent=
+ current===questions.length-1?"VOIR MON RÉSULTAT":"SUIVANT ➜";
+}
+
+function nextQuestion(){
+ const selected=document.querySelector('input[name="answer"]:checked');
+ if(!selected){alert("Choisis une réponse !");return;}
+ const answer=questions[current][1][Number(selected.value)][1];
+ Object.entries(answer).forEach(([key,value])=>{
+ scores[key]=(scores[key]||0)+value;
+ });
+ current++;
+ if(current<questions.length)renderQuestion();
+ else showResult();
+}
+
+function best(keys){
+ return [...keys].sort((a,b)=>(scores[b]||0)-(scores[a]||0))[0];
+}
+
+function showResult(){
+ document.getElementById("quiz").classList.add("hidden");
+ document.getElementById("result").classList.remove("hidden");
+
+ const elements=["fire","water","wind","lightning","earth"];
+ const element=best(elements);
+ const clan=best(Object.keys(clans));
+
+ // 28 points de chakra correspondent à 1 000 000.
+ const chakraPoints=scores.chakra||0;
+ const maxChakraPoints=28;
+
+ // MINIMUM GARANTI : 99 999 POINTS DE CHAKRA
+ const chakra=Math.min(1000000,Math.max(99999,Math.round(
+ chakraPoints/maxChakraPoints*1000000
+ )));
+
+ const level=chakra>=1000000?"Divin":
+ chakra>=950000?"Mythique":
+ chakra>=800000?"Légendaire":
+ chakra>=650000?"Très élevé":
+ chakra>=450000?"Élevé":
+ chakra>=250000?"Moyen":
+ chakra>=100000?"Faible":"Très faible";
+
+ let rank=chakra>=950000?"Ninja divin":
+ chakra>=800000?"Ninja légendaire":
+ chakra>=650000?"Kage":
+ chakra>=450000?"Jônin":
+ chakra>=250000?"Chûnin":"Genin";
+
+ const techniques=[
+ "sharingan","byakugan","rinnegan","tenseigan","jogan",
+ "mokuton","hyoton","yoton","futton","jiton",
+ "shakuton","bakuton","ranton","shoton","koton"
+ ];
+
+ const modes=["senin","snake","slug","kurama","six","baryon"];
+
+ const tech=techniques.filter(k=>(scores[k]||0)>=3)
+ .sort((a,b)=>scores[b]-scores[a]);
+
+ const activeModes=modes.filter(k=>(scores[k]||0)>=3)
+ .sort((a,b)=>scores[b]-scores[a]);
+
+ const sortedElements=[...elements].sort(
+ (a,b)=>(scores[b]||0)-(scores[a]||0)
+ );
+
+ const html=`
+ <div class="rank">🏆 ${rank}</div>
+ <div class="stat"><strong>Clan :</strong><h2>${clans[clan]}</h2></div>
+ <div class="stat"><strong>Élément principal :</strong>
+ <h2>${names[element]}</h2></div>
+ <div class="stat"><strong>Affinités :</strong><br>
+ ${sortedElements.map(k=>`<span class="tag">${names[k]} (${scores[k]||0})</span>`).join("")}
+ </div>
+ <div class="stat"><strong>Réserve de chakra :</strong>
+ <div class="big">${chakra.toLocaleString("fr-FR")} / 1 000 000</div>
+ <p>Niveau : ${level}</p>
+ <div class="bar"><div style="width:${chakra/10000}%"></div></div>
+ <p class="small">Ton score est calculé à partir de tes réponses, avec un minimum garanti de 99 999 points.</p>
+ </div>
+ <div class="stat"><strong>Techniques héréditaires :</strong><br>
+ ${tech.length?tech.map(k=>`<span class="tag">${names[k]}</span>`).join(""):"Aucune technique dominante détectée"}
+ </div>
+ <div class="stat"><strong>Modes spéciaux :</strong><br>
+ ${activeModes.length?activeModes.map(k=>`<span class="tag">${names[k]}</span>`).join(""):"Aucun mode spécial détecté"}
+ </div>
+ <div class="stat"><strong>Énergies :</strong><br>
+ Yin : ${scores.yin||0}<br>
+ Yang : ${scores.yang||0}<br>
+ Yin-Yang : ${(scores.yin||0)>0&&(scores.yang||0)>0?"Affinité détectée":"Non détectée"}
+ </div>
+ `;
+ document.getElementById("resultContent").innerHTML=html;
+}
+</script>
+</body>
+</html>
+
